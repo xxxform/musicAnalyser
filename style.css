@@ -1,0 +1,358 @@
+html, body {height: 100%; overflow: hidden}
+form, .wrapperAnalyzer > .counters {
+	display: block;
+	left: 0;
+	position: absolute;
+}
+
+.wrapperAnalyzer > .counters {
+	bottom: 1em;
+}
+
+hr {
+	cursor: row-resize;
+	margin: 0;
+}
+
+.wrapperAnalyzers {
+	height: 70%;
+	overflow-y: scroll;
+}
+
+.wrapperAnalyzer {
+	overflow-x: scroll;
+	overflow-y: hidden;
+	white-space: nowrap;
+	direction: rtl;
+}
+
+.wrapperAnalyzer form{
+	direction: ltr;
+	font-family: Liberation serif;
+}
+
+.wrapperAnalyzer .analyzer thead td, .wrapperAnalyzer .analyzer tfoot td {
+	border-bottom: 1px dotted rgba(0,0,0,0);
+}
+
+.dopWrap {
+	position: relative;
+}
+
+table.analyzer {
+	font-size: 1em;
+	overflow-y: hidden;
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+	margin-right: 1.5em;
+	float: right;
+}
+
+table.analyzer > thead, table.analyzer > tfoot {
+	display: block;
+	position: absolute;
+	left: 0;
+	background: rgba(255,255,255,.8);
+}
+
+.wrapperAnalyzer > table.analyzer > tfoot {
+	font-family: Liberation serif;
+	left: inherit;
+	direction: ltr;
+	opacity: .7;
+	right: 0;
+}
+
+.wrapperAnalyzer > table.analyzer > tfoot td {
+	width: auto;
+}
+
+table.analyzer thead tr, table.analyzer tfoot tr {
+	display: block;
+}
+
+table.analyzer tbody {
+	font-family: Liberation serif;
+	font-style: italic;
+}
+
+table.analyzer tbody tr {
+	display: inline-block;
+	vertical-align: top;
+	direction: ltr;	
+}
+
+table.analyzer tbody tr.tact {
+	/*border-left: 1px solid silver; Если будут проблемы с расчётом ширины*/
+	box-shadow: -1px 0px silver; 
+}
+
+table.analyzer tbody tr:active, table.analyzer tbody tr.active {
+	background-color: orange;
+}
+
+table.analyzer tbody tr[title^=Созвучие] { /*Для одиночных*/
+	outline: 1px dotted grey;
+}
+table.analyzer tbody tr[title^=Выделено] { /*Для диапазона*/
+	outline: 1px dashed grey;
+}
+
+table.analyzer td {
+	display: block;
+	width: 1em;
+	height: 1em;
+	border-bottom: 1px dotted black;
+	box-sizing: border-box;
+}
+
+table.analyzer td:last-child {
+	border-bottom: 0;
+}
+
+table.analyzer tbody tr td.centerCell {
+	background-color: rgb(158,158,158);
+}
+
+table * {border: 0}
+
+.outCell {
+	background-color: lime;
+}
+.linCell {
+	outline: 2px dashed #e64a19;
+}
+.apCell {
+	background-color: grey;
+}
+.outCell.load {
+	/*box-shadow: 7px 7px 7px -5px rgba(34, 60, 80, 0.5) inset;
+	outline: 1px solid rgba(0,0,0,.3);
+	box-shadow: -1px 0px silver;*/
+}
+.apCell.load {
+	box-shadow: 7px 7px 7px -5px rgba(209, 208, 218, 0.6) inset;
+	/*outline: 1px solid rgba(255,255,255,.3);*/
+}
+.load {
+	text-align: center;
+	color: rgb(50,50,50);
+}
+.toAnalyze {
+	position: relative;
+}
+
+.toAnalyze > select {
+	position: absolute;
+	visibility: hidden;
+}
+
+.interface {
+	height:30%;
+	font-family: Liberation serif;
+}
+
+.interface > .filters, .interface > .settings {
+	position: relative;
+}
+
+.filters > .innerFilters, .settings > .innerSettings {
+	display: none;
+	position: absolute;
+	background: white;
+	z-index: 6;
+}
+
+.filters:hover .innerFilters {display: inline-block}
+.innerFilters:hover {display: inline-block}
+.innerFilters > label {display: block}
+
+.settings:hover .innerSettings {display: inline-block}
+.innerSettings:hover {display: inline-block}
+.innerSettings > label {display: block}
+
+#cntls {
+    overflow-y: scroll;
+	height: 90%;
+}
+
+select.analyzedTracks {z-index: 6}
+
+.counters {
+	direction: ltr;
+	clear: both;
+	border-top: 1px dashed silver;
+}
+.counters > p {
+	display: inline;
+	cursor: pointer; 
+	border-right: 2px solid black;
+	padding-left: 2px;
+	padding-right: 7px;
+}
+.counters > p > span {
+	/*min-width: 1em;
+	border: 1px solid rgba(0,0,0,.2);*/
+	cursor: default;
+}
+.counters > .sumApNoDbl {
+	position: relative;
+}
+.counters > .sumApNoDbl > .apInfo {
+	position: relative;
+}
+.counters > .sumApNoDbl > .apInfo > .apInfoText {
+	mix-blend-mode: difference;
+	color: white;
+}
+.counters > .sumApNoDbl > .apInfo > .colors {
+	position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    width: 100%;
+	z-index:-1;
+}
+.counters > .sumApNoDbl > .apInfo > .colors > span {
+	border-radius: 0%;
+	background: white;
+}
+.counters > .sumApNoDbl > .apInfo > .colors.animate > span {
+	transition-property: background-color;
+    transition-duration: 3s;
+	transition-delay: 3s;
+}
+.counters > .sumApNoDbl > .apInfo > .colors > .alpha {
+	right: 100%;
+}
+.counters .colors {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+}
+.counters .colors > span {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	position: relative;
+	border-radius: 50%;
+}
+.counters .colors > .alpha {
+	mix-blend-mode: multiply;
+	background: red;
+	right: .7em;
+}
+.counters .colors > .beta {
+	mix-blend-mode: multiply;
+	background: blue;
+}
+
+.counters > .lastDelta {
+	background: white;
+}
+
+.counters > .lastDelta > span {
+	mix-blend-mode: difference;
+    color: white;
+}
+
+button.muteBtn.active {
+	background-color: yellow;
+}
+
+button.soloBtn.active {
+	background-color: red;
+}
+
+.indicator {
+	cursor: pointer;
+	width: 1em;
+	height: 1em;
+	border: 1px solid black;
+	display: inline-block;
+}
+
+.indicator.active {
+	background: yellow;
+}
+
+piano-roll {
+	border-collapse: collapse;
+	position: relative;
+	display: block;
+	margin-top: 1em;
+	font-size: 1.5em;
+}
+
+piano-roll .color {
+	position: absolute;
+    width: 100%;
+    height: .5em;
+    top: -.5em;
+	z-index:-1;
+	border-top: 1px solid black;
+}
+
+piano-roll > span {
+	display: table-cell;
+}
+
+piano-roll > span.white {
+	width: 1em;
+	height: 3em;
+	border: 1px solid black;
+	position: relative;
+	background: white;
+	border-right: 0;
+}
+
+piano-roll > span.white:last-child {
+	border-right: 1px solid black;
+}
+
+piano-roll > span.white:first-child > .color{
+	border-left: 1px solid black;
+	left: -1px;
+}
+
+piano-roll > span.white:last-child > .color{
+	border-right: 1px solid black;
+}
+
+piano-roll > span:nth-child(5) > .color{
+	border-right: 1px solid black;
+}
+
+piano-roll > span.black-wrap {
+	position: relative;
+}
+
+piano-roll > span.black-wrap > span.black {
+	background: black;
+	position: absolute;
+	width: .7em;
+	height: 1.9em;
+	left: -.32em;
+	z-index: 3;
+	border-top: 1px solid rgba(0,0,0,0);
+}
+
+piano-roll .content {
+	font-size: .4em;
+	position: absolute;
+	bottom: .6em;
+	text-align: center;
+	width: 100%;
+	mix-blend-mode: difference;
+	color: white;
+}
+
+#position {
+	width: 100%;
+	display: block;
+}
+.offset {
+	width: 3em;
+}
+

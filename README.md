@@ -4,5 +4,10 @@
 Инструкция на моём канале:
 https://youtu.be/ClwbYxED_yI?t=390
 
-Полную версию в сборе можно найти на 
-https://drive.google.com/drive/folders/1bilZUxsQJXPQB3C4dV5MWF-shgEyzfzT
+Зависимости:
+https://github.com/nfroidure/MIDIFile
+https://github.com/surikov/webaudiofont
+
+Оффлайн версия: 
+https://drive.google.com/file/d/1poZmF_hlwHmzUSiN8hmtweeokkBKQU0L/view?usp=drive_link
+

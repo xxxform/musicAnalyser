@@ -14,7 +14,7 @@ const timeSign = [4, 4];
 let resizeTimeoutId = 0;
 let tracksActiveSounds = new Map(); //Ключ-дорожка, значение-массив из её активных(сейчас звучащих) звуков
 const trackMessageEmitters = new Map(); // Ключ-массив из её активных звуков дорожки, значение - ЕЕ(EventTarget) note on/off сообщений
-
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
 const trackSelect = document.createElement('select');
 trackSelect.multiple = true;
 trackSelect.className = 'analyzedTracks';
@@ -268,9 +268,8 @@ function addTrack(track) {
 		case 128: indicator.classList.remove('active'); break;
 	}});
 
-	piano.addEventListener('mousedown', event => { //touchstart
-		if (event.target === piano || event.target.tagName === 'INPUT')
-			return;
+	piano.addEventListener(isMobile ? 'touchstart' : 'mousedown', event => {
+		if (event.target === piano) return;
 
 		let preRootElement = event.target;
 		while(preRootElement.parentElement !== piano) {
@@ -281,9 +280,9 @@ function addTrack(track) {
 		if (index === -1) return; //48 мидикод до малой октавы todo
 		midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [144, index + 48]});
 
-		document.body.addEventListener('mouseup', function handler() {
+		document.body.addEventListener(isMobile ? 'touchend' : 'mouseup', function handler() {
 			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48]});
-			document.body.removeEventListener('mouseup', handler);
+			document.body.removeEventListener(isMobile ? 'touchend' : 'mouseup', handler);
 		});
 	}); 
 	

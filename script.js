@@ -267,6 +267,25 @@ function addTrack(track) {
 		case 144: indicator.classList.add('active'); break;
 		case 128: indicator.classList.remove('active'); break;
 	}});
+
+	piano.addEventListener('mousedown', event => { //touchstart
+		if (event.target === piano || event.target.tagName === 'INPUT')
+			return;
+
+		let preRootElement = event.target;
+		while(preRootElement.parentElement !== piano) {
+			preRootElement = preRootElement.parentElement;
+		}
+
+		const index = Array.prototype.indexOf.call(piano.children, preRootElement);
+		if (index === -1) return; //48 мидикод до малой октавы todo
+		midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [144, index + 48]});
+
+		document.body.addEventListener('mouseup', function handler() {
+			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48]});
+			document.body.removeEventListener('mouseup', handler);
+		});
+	}); 
 	
 	trackMessageEmitters.set(trackSounds, soundEmitter);
 	
@@ -1275,7 +1294,7 @@ document.body.onmousedown = e => {
 	if (e.target.tagName == "HR") {
 		toResize = e.target.id == "ifaceresize" ? e.target.nextElementSibling : e.target.previousElementSibling.lastElementChild.children[1];
 		rectClick = e.clientY;
-	} else if (e.target.className === 'white' || e.target.className === 'black') {
+	} /*else if (e.target.className === 'white' || e.target.className === 'black') {
 		const pianoRoll = e.target.closest('piano-roll');
 		const keyElement = e.target.className === 'white' ? e.target : e.target.parentElement;
 		const midiCode = Array.from(pianoRoll.children).indexOf(keyElement);
@@ -1293,7 +1312,7 @@ document.body.onmousedown = e => {
 				return;
 			}
 		}	
-	}
+	}*/
 }
 
 document.body.onmousemove = e => {

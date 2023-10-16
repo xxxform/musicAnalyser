@@ -152,12 +152,12 @@ function getMidiCodeByCountOfFifth(countOfFifths) {
 //const tonesLoadsMap = [-1,-6,2,-4,4,-2,6,1,-5,3,-3,5];
 //Принимает midiCode тоники системы
 //Вернёт массив где индекс - midiCode а значение - нагрузка этого звука в системе midiCode
-function getSystemLoadsInMidiCodeView(midiCode, systemLoads = []) {
+function getSystemLoadsInMidiCodeView(midiCode, systemLoads = [], triton6b = false) {
 	//midiCode это смещение для массива tonesLoadsMap.
 	const sysMidiCodes = getSoundCodes(midiCode); //Вернёт для 7 [7,  8,9,10,11,0,1,2, 3,4, 5,6]
 		      //что соответствует tonesLoadsMap 				 [-1,-6,2,-4,4,-2,6,1,-5,3,-3,5]
 	for (let i = 0; i < CountOfSoundSystem; i++) //CountOfSoundSystem здесь кол-во клавиш
-		systemLoads.push(tonesLoadsMap[sysMidiCodes.indexOf(i)]);
+		systemLoads.push((triton6b ? tonesLoadsMap.with(6, -6) : tonesLoadsMap)[sysMidiCodes.indexOf(i)]);
 		//Найдёт нагрузку каждого midiCode(i) в текущей системе
 		//notesNames.push(getOverflowIndex(i + midiCode, 12));
 	return systemLoads;

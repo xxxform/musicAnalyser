@@ -58,24 +58,44 @@ function setTimer(callback, time) {
 
 //Компонент пианино
 customElements.define("piano-roll", class extends HTMLElement {
-	constructor() {
-		super();
-		this.innerHTML = `
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="black-wrap"><span class="black"><span class="color"></span><span class="content"></span></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="black-wrap"><span class="black"><span class="color"></span><span class="content"></span></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="black-wrap"><span class="black"><span class="color"></span><span class="content"></span></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="black-wrap"><span class="black"><span class="color"></span><span class="content"></span></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>
-			<span class="black-wrap"><span class="black"><span class="color"></span><span class="content"></span></span></span>
-			<span class="white"><span class="color"></span><span class="content"></span></span>`;
+	constructor() { // На мобилке тапы звук не дают, перепроверь после релиза
+		super(); 
+		this.octaves = 4; 
+		this.innerHTML = [0,1,0,1,0,0,1,0,1,0,1,0] //маска для создания одной октавы пианино ↔
+		.map(isBlack => `<span class="${isBlack ? 'black' : 'white'}-wrap"><span> <span class="color"></span> <span class="content"></span> </span></span>`).join('')
+		.repeat(this.octaves).concat(` <div class="fullScreenPianoButton">⤢</div>
+			<label title="сдвиг октав" class="octaveShift"><input type="number" value="0"></label>
+			<select class="quantize" title="Цветовая модель">
+				<option value="redWhiteBlue" selected>Красный-белый-синий</option>
+				<option value="yellowWhiteBlue">Желтый-белый-синий</option>
+				<option value="yellowWhitePurple">Желтый-белый-фиолетовый</option>
+				<option value="yellowPurple">Желтый-серый-фиолетовый</option>
+				<option value="yellowBlue">Желтый-серый-синий</option>
+				<option value="redBlue">Красный-серый-синий</option>
+				<option value="monochrome">Чёрный-серый-белый</option>
+				<option value="multicoloured">Цветной</option>
+			</select>
+			<label title="функция ноты" class="load">+1<input type="checkbox"></label>
+			<label title="полная подсветка" class="light">💡<input type="checkbox"></label>
+		`);
 		
+		this.fullScreenPianoButton = this.querySelector('div.fullScreenPianoButton');
+		this.fullScreenPianoButton.onclick = () => {
+			this.classList.toggle('fullScreenPiano');
+		}
 		this.trackSoundEmitter = null;
 		this.midiEventHandler = this.midiEventHandler.bind(this);
+		this.tone = this.querySelector('select');
+		this.tone.onchange = () => this.setColors(systemLoads);
+		this.loadsView = this.querySelector('label.load > input');
+		this.lightView = this.querySelector('label.light > input');
+		this.lightView.onchange = () => this.setColors(systemLoads);
+		this.octaveShift = this.querySelector('label.octaveShift > input');
+		this.octaveShift.onchange = () => {
+			for (let i = 0; i < this.octaves * 12; i++) {
+				this.midiEventHandler([128, i]); //убераем следы игравших нот
+			}
+		}
 		this.setColors(systemLoads);
 		this.floatActiveCodesMap = new Map();
 	}
@@ -93,30 +113,48 @@ customElements.define("piano-roll", class extends HTMLElement {
 		this.trackSoundEmitter = ee;
 	} 
 	
-	setColors(systemLoads) {
+	setColors(systemLoads) { 
 		const childs = this.children;
 		
-		for (let i = 0; i < systemLoads.length; i++) {
-			const load = systemLoads[i]; // холодные цвета - минор, теплые - мажор
-			childs[i].querySelector('.color').style.backgroundColor = `hsl(${(load < 0 ? 190 : -13) + Math.abs(load) * (load < 0 ? 16 : 13)}, 100%, 50%)`;
+		for (let i = 0; i < this.octaves * 12; i++) {
+			const index = getOverflowIndex(i, 12);
+			const load = systemLoads[index]; // холодные цвета - минор, теплые - мажор.
+			let result = '';
+			
+			 //60 - желтый, 0 красный, 240 синий, 260 фиолетовый
+			switch (this.tone.value) {
+				case 'monochrome': result = `hsl(0,0%,${100 / 12 * (load + 6)}%)`; break; 
+				case 'redWhiteBlue': result = `hsl(${load > 0 ? 0 : 240},100%,${(100) - Math.ceil(50/6 * Math.abs(load))}%)`; break;
+				case 'yellowWhitePurple': result = `hsl(${load > 0 ? 60 : 260},100%,${(100) - Math.ceil(50/6 * Math.abs(load))}%)`; break;
+				case 'yellowWhiteBlue': result = `hsl(${load > 0 ? 60 : 240},100%,${(100) - Math.ceil(50/6 * Math.abs(load))}%)`; break;
+				case 'yellowPurple': result = `hsl(${load > 0 ? 60 : 260},${Math.ceil(100/6 * Math.abs(load))}%,50%)`; break;
+				case 'yellowBlue': result =   `hsl(${load > 0 ? 60 : 240},${Math.ceil(100/6 * Math.abs(load))}%,50%)`; break;
+				case 'redBlue': result =       `hsl(${load > 0 ? 0 : 240},${Math.ceil(100/6 * Math.abs(load))}%,50%)`; break;
+				case 'multicoloured': result = !load ? 'grey' : `hsl(${(load < 0 ? 190 : -13) + Math.abs(load) * (load < 0 ? 16 : 13)}, 100%, 50%)`; break;
+			}
+			//case 'blackBlueWhite': result = `hsl(240,50%,${100 / 12 * (load + 6)}%)`; break; 
+
+			childs[i].querySelector('.color').style.backgroundColor = result;
+
+			if (this.lightView.checked) childs[i].firstChild.style.backgroundColor = result;
+			else childs[i].firstChild.removeAttribute('style');
 		}
 	}
 	
 	toggle() {
 		const flag = this.style.display === ''; //true если сейчас отображается. Переключаемся на off
 		
-		if (!flag) //Найти трек и отобразить его звуки если компонент был скрыт
-			for (const [track, ee] of trackMessageEmitters) {
-				if (ee !== this.trackSoundEmitter) continue;
-				for (const code of track) this.midiEventHandler([144, code]);
-				break;
-			}
-		
 		this.style.display = flag ? 'none' : '';
-		this.trackSoundEmitter[`${flag ? 'remove': 'add'}EventListener`](this.midiEventHandler);
+
+		if (flag) {//remove
+			this.trackSoundEmitter.removeEventListener(this.midiEventHandler);
+		} else { //add
+			this.trackSoundEmitter.callbacks.unshift(this.midiEventHandler);
+		}
+		//this.trackSoundEmitter[`${flag ? 'remove': 'add'}EventListener`](this.midiEventHandler);
 	}
 	
-	midiEventHandler([type, code]) {
+	midiEventHandler([type, code]) { 
 		let codeVal = +code;
 		const isFloat = code instanceof FloatSound;
 		
@@ -129,17 +167,19 @@ customElements.define("piano-roll", class extends HTMLElement {
 			}
 			return;
 		}
-		
-		const contentElement = this.children[codeVal].querySelector('span.content');
-		
-		if (type === 144) {
-			contentElement.textContent = soundNames[codeVal];
-			contentElement.parentElement.style.backgroundColor = contentElement.previousElementSibling.style.backgroundColor;
-			if (isFloat) this.floatActiveCodesMap.set(code, codeVal);
+
+		const indexForElem = isFloat ? code.getPitch() : codeVal; //getOverflowIndex(indexForElem + 12 при сдвиге на октаву вверх)
+		const contentElement = this.children[getOverflowIndex(indexForElem - (+this.octaveShift.value * 12 || 0), this.octaves * 12)].querySelector('span.content');
+		if (type === 144) { 
+			contentElement.textContent = this.loadsView.checked ? systemLoads[simplifyMidiCode(codeVal)].toString().padStart(2, "+") : soundNames[simplifyMidiCode(codeVal)]; //codeVal для песен надо симплить
+			if (!this.lightView.checked) 
+				contentElement.parentElement.style.backgroundColor = contentElement.previousElementSibling.style.backgroundColor;
+			if (isFloat) this.floatActiveCodesMap.set(code, indexForElem);
 		} else if (type === 128) {
 			contentElement.textContent = '';
-			contentElement.parentElement.style.backgroundColor = '';
-			if (isFloat) this.floatActiveCodesMap.delete(code, codeVal);
+			if (!this.lightView.checked) 
+				contentElement.parentElement.style.backgroundColor = '';
+			if (isFloat) this.floatActiveCodesMap.delete(code);
 		}
 	}
 });
@@ -215,7 +255,7 @@ function clearTracks() {
 	
 	Array.from(tracksActiveSounds.entries()).forEach(([input, activeSound], index) => {
 		if (input instanceof MIDIInput || index === 0) return false;
-		
+		codeEnvelopeMap.delete(input);
 		trackMessageEmitters.delete(activeSound);
 		tracksActiveSounds.delete(input);
 		document.getElementById(`selins${index}`).parentElement.remove();
@@ -231,6 +271,7 @@ function clearTracks() {
 }
 
 function addTrack(track) {
+	codeEnvelopeMap.set(track, {});
 	const tracksDiv = document.getElementById('channels');
 	let result = '';	
 	
@@ -263,13 +304,16 @@ function addTrack(track) {
 	
 	//Подсветка индикатора
 	const indicator = addedTrackElement.querySelector('.indicator');
-	soundEmitter.addEventListener(([type, code]) => {switch (type) {
-		case 144: indicator.classList.add('active'); break;
-		case 128: indicator.classList.remove('active'); break;
-	}});
+	soundEmitter.addEventListener(msg => {
+		if (!(msg[1] instanceof FloatSound)) msg[1] = simplifyMidiCode(msg[1]);
+		switch (msg[0]) {
+			case 144: indicator.classList.add('active'); break;
+			case 128: indicator.classList.remove('active'); break;
+		}
+	});
 
 	piano.addEventListener(isMobile ? 'touchstart' : 'mousedown', event => {
-		if (event.target === piano) return;
+		if (event.target.tagName !== 'SPAN') return; 
 
 		let preRootElement = event.target;
 		while(preRootElement.parentElement !== piano) {
@@ -277,11 +321,11 @@ function addTrack(track) {
 		}
 
 		const index = Array.prototype.indexOf.call(piano.children, preRootElement);
-		if (index === -1) return; //48 мидикод до малой октавы todo
-		midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [144, index + 48]});
+		if (index === -1) return; //48 мидикод до малой октавы 
+		midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [144, index + 48 + (+piano.octaveShift.value * 12 || 0)]}); //index + 48 - 12 при переносе на октаву вверх
 
 		document.body.addEventListener(isMobile ? 'touchend' : 'mouseup', function handler() {
-			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48]});
+			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48 + (+piano.octaveShift.value * 12 || 0)]});//index + 48 - 12 при переносе на октаву вверх
 			document.body.removeEventListener(isMobile ? 'touchend' : 'mouseup', handler);
 		});
 	}); 
@@ -300,17 +344,28 @@ window.addEventListener('resize', e => {
 	return false;
 });
 
-triton6b.onchange = e => {
+triton6b.onchange = e => { 
 	for (let a of analyzers) {
 		if (triton6b.checked === a.triton6b.checked) continue;
 		a.triton6b.checked = triton6b.checked;
 		a.onTriton6bChange();
 	}
+	
+	const indexOfKey = soundNames.indexOf(getKey(+key.value));
+	const indexOfTritone = getOverflowIndex(indexOfKey + 6, 12);
+	soundNames[indexOfTritone] = getKey(+key.value + (triton6b.checked ? -6 : 6));
+
+	const tritonIndex = systemLoads.indexOf(triton6b.checked ? 6 : -6);
+	systemLoads[tritonIndex] = systemLoads[tritonIndex] * -1;
+	
+	document.getElementById('channels')
+		.querySelectorAll('p > piano-roll')
+		.forEach(p => p.setColors(systemLoads)); 
 }
 
 //Смена общей тональности
 key.onchange = e => {
-	const newKey = onChangeKey.call({notesNames, key, systemLoads, soundNames}, e);
+	const newKey = onChangeKey.call({triton6b, notesNames, key, systemLoads, soundNames}, e);
 	
 	for (let a of analyzers) {
 		if (a.key.disabled) continue;
@@ -521,7 +576,11 @@ class Analyzer{//				     массив из ссылок на массивы а�
 	onTriton6bChange(event) {
 		this.systemLoads.some((val, i) => {
 			if (Math.abs(val) == 6) {
-				return this.systemLoads[i] *= -1;
+				const indexOfKey = this.soundNames.indexOf(getKey(+this.key.value));
+				const indexOfTritone = getOverflowIndex(indexOfKey + 6, 12);
+				this.soundNames[indexOfTritone] = getKey(+this.key.value + (this.triton6b.checked ? -6 : 6));
+
+				return this.systemLoads[i] *= -1; //Поменять soundNames
 			}
 		});
 	}
@@ -1214,7 +1273,7 @@ function onChangeKey(event) {
 	this.key.innerHTML = optionElements;
 	
 	this.systemLoads.length = 0;
-	getSystemLoadsInMidiCodeView(getMidiCodeByCountOfFifth(newKey), this.systemLoads);
+	getSystemLoadsInMidiCodeView(getMidiCodeByCountOfFifth(newKey), this.systemLoads, this.triton6b.checked);
 	
 	if (this.id === void 0)
 		document.getElementById('channels').querySelectorAll('p > piano-roll').forEach(p => p.setColors(this.systemLoads));
@@ -1239,9 +1298,6 @@ function onChangeKey(event) {
 	this.soundNames.push(...res);
 	
 	this.prevKey = newKey;
-	
-	this.triton6b && this.triton6b.checked 
-		&& this.systemLoads.some((val, i) => val === 6 && (this.systemLoads[i] = -6));
 	
 	return newKey;
 }
@@ -1268,7 +1324,7 @@ addAllAnalyzerBtn.onclick = () => {
 		a.tracksActiveSounds.push(sounds);
 	};
 }
-
+//todo
 Object.defineProperty(window, "bpm", {
 	get() {
 		return bpmVal;
@@ -1288,7 +1344,7 @@ bpmEl.onchange = e => {
 	bpmVal = val; 
 	setFullTact();
 }
-
+//Три сущности bpm: bpm, bpmVal и bpmEl
 document.body.onmousedown = e => {
 	if (e.target.tagName == "HR") {
 		toResize = e.target.id == "ifaceresize" ? e.target.nextElementSibling : e.target.previousElementSibling.lastElementChild.children[1];
@@ -1313,7 +1369,14 @@ document.body.onmousedown = e => {
 		}	
 	}*/
 }
+ifaceResizeValue.oninput = () => {
+	const value = +ifaceResizeValue.value;
+	if (!value || value < 0 || value > 100) return;
 
+	wrapperAnalyzers.style.height = 100 - value + "%";
+	document.querySelector('body > div.interface').style.height = value + "%"; 
+	
+}
 document.body.onmousemove = e => {
 	if (toResize && rectClick) {
 		const newRect = e.clientY;
@@ -1331,7 +1394,7 @@ document.body.onmousemove = e => {
 			
 			toResize.style.height = newi + "%";
 			analyzerWrap.style.height = newa + "%";
-			
+			ifaceResizeValue.value = newi;
 		} else {
 			const fSize = parseFloat(toResize.style.fontSize) || 1;
 			toResize.style.fontSize = fSize + 0.007 * (pxToResize > 0 || -1) +'em';
@@ -1369,7 +1432,7 @@ async function f() {
 		const info = input.info = player.loader.instrumentInfo(0); 
 		input.volume = 1;
 		player.loader.startLoad(audioContext, info.url, info.variable);
-		codeEnvelopeMap.set(input, {});
+		
 		const element = addTrack(input);
 		
 		if (storage) {
@@ -1462,11 +1525,10 @@ async function f() {
 
 //Обработка колеса высоты тона midi клавиатуры
 let lastPitchBendValue = 0;
-function midiMessageHandler(activeS, ee, obj) {
+function midiMessageHandler(activeS, ee, obj) { 
 	const msg = obj.data;
 	const midiCode = msg[1];
-	const inp = codeEnvelopeMap.get(this);
-	msg[1] = simplifyMidiCode(msg[1]);
+	const inp = codeEnvelopeMap.get(this);	//для песен this здесь {id:0,n:0,info{},volume...}
 	
 	if ((msg[0] === 128) || (msg[0] === 144 && msg[2] === 0)) {
 		inp[midiCode].stop();
@@ -1484,7 +1546,7 @@ function midiMessageHandler(activeS, ee, obj) {
 		activeS.push(val); 
 		ee.dispatchEvent([msg[0], val]);
 	} else if ([224,225,226].includes(msg[0])) {
-		const pitchBendValue = getPitchBendValue(msg[2], msg[1]);
+		const pitchBendValue = getPitchBendValue(msg[2], simplifyMidiCode(msg[1]));
 		for (const source of Object.values(inp)) source.detune.value = pitchBendValue;
 		if (Math.round(pitchBendValue / 100) !== Math.round(lastPitchBendValue / 100)) 
 			ee.dispatchEvent([]); 

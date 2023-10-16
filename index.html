@@ -26,6 +26,7 @@
 		<input type="button" id="addAnalyzerBtn" value="Добавить анализатор">
 		<input type="button" id="addAllAnalyzerBtn" value="К каждой дорожке">
 		<input type="button" id="resetSettings" value="Сбросить настройки">
+		<input type="number" id="ifaceResizeValue" value="50">
 	</div>
 	
 	<div id='cntls'>
@@ -159,6 +160,9 @@
 			[Symbol.toPrimitive]() {
 				return simplifyMidiCode(Math.round(this.pitch + this.source.detune.value / 100));
 			}
+			getPitch() {
+				return Math.round(this.pitch + this.source.detune.value / 100);
+			}
 		} 
 		
 		function sendNotes(song, songStart, start, end,   audioContext, input, player) {
@@ -183,20 +187,21 @@
 			
 						var instr = track.info.variable;
 						var v = track.volume / 7;
-						let soundCode;
+						let soundCode; //Может быть как FloatSound так и оригинальным midiCode. Используется через замыкание
 						
 						//Slide.when - время от начала ноты в секундах, когда колесо изменило положение
 						player.queueWaveTable(audioContext, input, window[instr], when, note.pitch, duration, v, note.slides, () => {//OnEnd обработка закрытия звука
 							if (activeS === void 0) return;
-							activeS.splice(activeS.lastIndexOf(soundCode), 1);
+							activeS.splice(activeS.lastIndexOf(soundCode instanceof FloatSound ? soundCode : simplifyMidiCode(soundCode)), 1);
 							ee.dispatchEvent([128, soundCode]);
 						}, source => {//OnStart
 							const time = userInputAudioContext.currentTime;
 							if (activeS === void 0) return; //Если сборщик убрал activeS после выгрузки песни
 							
-							if (note.slides === void 0 || note.slides.length === 0)
-								soundCode = simplifyMidiCode(note.pitch) //По хорошему в классе анализатора
-							else {
+							if (note.slides === void 0 || note.slides.length === 0) {
+								soundCode = note.pitch; 
+								activeS.push(simplifyMidiCode(soundCode)); 
+							} else {
 								soundCode = new FloatSound(note.pitch, source);
 								//1 подписчик на треке всегда - индикатор
 								if (ee.callbacks.length > 1) {
@@ -208,9 +213,9 @@
 										prev = slide; 
 									}//Бомбит EE событиями колеса высоты когда значение тона меняется на другое		
 								}
+								activeS.push(soundCode);
 							}
 								
-							activeS.push(soundCode); 
 							ee.dispatchEvent([144, soundCode]);
 						});
 					} else if (soundSended) {
@@ -510,6 +515,18 @@
 		}
 		
 		document.getElementById('filesinput').addEventListener('change', handleFileSelect, false);
+		document.addEventListener('DOMContentLoaded', e => {
+			const urlParams = new URLSearchParams(window.location.search);
+			const size = urlParams.get('size');
+
+			if (size && +size && size > 0 && size <= 100) {
+				ifaceResizeValue.value = size;
+				ifaceResizeValue.dispatchEvent(new Event('input'));
+			} else {
+				const iface = document.querySelector('body > div.interface');
+				ifaceResizeValue.value = Math.ceil(iface.clientHeight / ((wrapperAnalyzers.clientHeight + iface.clientHeight) / 100));
+			}
+		});
 		
 </script>
 

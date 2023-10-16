@@ -125,11 +125,11 @@ table * {border: 0}
 .apCell {
 	background-color: grey;
 }
-.outCell.load {
-	/*box-shadow: 7px 7px 7px -5px rgba(34, 60, 80, 0.5) inset;
+/*.outCell.load {
+	box-shadow: 7px 7px 7px -5px rgba(34, 60, 80, 0.5) inset;
 	outline: 1px solid rgba(0,0,0,.3);
-	box-shadow: -1px 0px silver;*/
-}
+	box-shadow: -1px 0px silver;
+}*/
 .apCell.load {
 	box-shadow: 7px 7px 7px -5px rgba(209, 208, 218, 0.6) inset;
 	/*outline: 1px solid rgba(255,255,255,.3);*/
@@ -278,7 +278,6 @@ button.soloBtn.active {
 }
 
 piano-roll {
-	border-collapse: collapse;
 	position: relative;
 	display: block;
 	margin-top: 1em;
@@ -298,7 +297,7 @@ piano-roll > span {
 	display: table-cell;
 }
 
-piano-roll > span.white {
+piano-roll > span.white-wrap {
 	width: 1em;
 	height: 3em;
 	border: 1px solid black;
@@ -307,20 +306,26 @@ piano-roll > span.white {
 	border-right: 0;
 }
 
-piano-roll > span.white:last-child {
+piano-roll > span.white-wrap > span {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+piano-roll > span.white-wrap:nth-child(48) {
 	border-right: 1px solid black;
 }
 
-piano-roll > span.white:first-child > .color{
+piano-roll > span.white-wrap:first-child  .color{
 	border-left: 1px solid black;
 	left: -1px;
 }
 
-piano-roll > span.white:last-child > .color{
+piano-roll > span.white-wrap:nth-child(48) .color{
 	border-right: 1px solid black;
 }
 
-piano-roll > span:nth-child(5) > .color{
+piano-roll > span:nth-child(12n+5) .color, piano-roll > span:nth-child(12n+12) .color{
 	border-right: 1px solid black;
 }
 
@@ -328,7 +333,7 @@ piano-roll > span.black-wrap {
 	position: relative;
 }
 
-piano-roll > span.black-wrap > span.black {
+piano-roll > span.black-wrap > span {
 	background: black;
 	position: absolute;
 	width: .7em;
@@ -348,6 +353,18 @@ piano-roll .content {
 	color: white;
 }
 
+piano-roll > label.load {
+	font-size: 0.8em;
+}
+
+piano-roll > label.light {
+	font-size: 0.63em;
+}
+
+.octaveShift > input {
+	width: 3em;
+}
+
 #position {
 	width: 100%;
 	display: block;
@@ -356,3 +373,84 @@ piano-roll .content {
 	width: 3em;
 }
 
+#ifaceResizeValue {
+	width: 3em;
+	float: right;
+}
+
+#bpmEl {
+	width: 4em;
+}
+
+.fullScreenPianoButton {
+	display: table-cell;
+    vertical-align: bottom;
+    position: relative;
+    top: 1.2em;
+    left: -0.7em;
+    cursor: pointer;
+}
+
+.fullScreenPiano {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: 0;
+    background: white;
+	display: flex;
+	justify-content: center;
+	align-items: end;
+	z-index: 7;
+}
+
+.fullScreenPiano > *:not(span) {
+	display: none;
+}
+
+.fullScreenPiano > .fullScreenPianoButton {
+	display: inline;
+    position: fixed;
+    right: 1vw;
+    top: 2vh;
+    left: unset;
+    font-size: 3vw;
+}
+
+.fullScreenPiano > span.white-wrap {
+	flex-basis: calc(100vw/28);
+	height: 50vh;
+}
+
+.fullScreenPiano > span.white-wrap > span > .color {
+	height: 100%;
+    top: -4vh;
+}
+
+.fullScreenPiano > span.black-wrap > span {
+	width: 2.2vw;
+    height: 31vh;
+    left: -1.1vw;
+    top: -50.1vh;
+	box-shadow: -.1vw .3vh .34vw .14vw grey;
+	/* box-shadow: -0.14vw 0.3vh 0.14vw 0.14vw grey; */
+}
+
+.fullScreenPiano > .black-wrap > span > .color {
+	top: -4.1vh;
+    height: 4vh;
+}
+
+.fullScreenPiano > span > span > .content {
+	font-size: 1.8vw;
+	bottom: unset;
+	height: 100%;
+	display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.fullScreenPiano > span > span > span.content:not(:empty) {
+	box-shadow: inset -.1vw .7vh .6vw 0vw grey;
+}

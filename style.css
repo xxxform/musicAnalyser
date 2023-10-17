@@ -352,6 +352,7 @@ piano-roll .content {
 	width: 100%;
 	mix-blend-mode: difference;
 	color: white;
+	user-select: none;
 }
 
 piano-roll > label.load {

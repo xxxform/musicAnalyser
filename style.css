@@ -278,6 +278,7 @@ button.soloBtn.active {
 }
 
 piano-roll {
+	touch-action: manipulation;
 	position: relative;
 	display: block;
 	margin-top: 1em;

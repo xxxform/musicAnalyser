@@ -58,7 +58,7 @@ function setTimer(callback, time) {
 
 //Компонент пианино
 customElements.define("piano-roll", class extends HTMLElement {
-	constructor() { // На мобилке тапы звук не дают, перепроверь после релиза
+	constructor() { // На мобилке тапы звук не дают, перепроверь после релиза. Тест флоатсаунд из песен, питчбенд на клаве юзера
 		super(); 
 		this.octaves = 4; 
 		this.innerHTML = [0,1,0,1,0,0,1,0,1,0,1,0] //маска для создания одной октавы пианино ↔
@@ -78,10 +78,20 @@ customElements.define("piano-roll", class extends HTMLElement {
 			<label title="функция ноты" class="load">+1<input type="checkbox"></label>
 			<label title="полная подсветка" class="light">💡<input type="checkbox"></label>
 		`);
-		
+
 		this.fullScreenPianoButton = this.querySelector('div.fullScreenPianoButton');
 		this.fullScreenPianoButton.onclick = () => {
 			this.classList.toggle('fullScreenPiano');
+			if (!isMobile) return;
+				
+			if (this.classList.contains('fullScreenPiano')) {
+				const meta = document.createElement('meta');
+				meta.setAttribute('name', 'viewport');
+				meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no')
+				document.head.appendChild(meta);
+			} else {
+				document.head.removeChild(document.head.querySelector('meta[name="viewport"]'));
+			}
 		}
 		this.trackSoundEmitter = null;
 		this.midiEventHandler = this.midiEventHandler.bind(this);

@@ -82,7 +82,7 @@ customElements.define("piano-roll", class extends HTMLElement {
 		this.fullScreenPianoButton = this.querySelector('div.fullScreenPianoButton');
 		this.fullScreenPianoButton.onclick = () => {
 			this.classList.toggle('fullScreenPiano');
-			if (!isMobile) return;
+			if (true) return;
 				
 			if (this.classList.contains('fullScreenPiano')) {
 				const meta = document.createElement('meta');

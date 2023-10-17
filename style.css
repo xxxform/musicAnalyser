@@ -400,9 +400,9 @@ piano-roll > label.light {
     margin: 0;
     background: white;
 	display: flex;
-	justify-content: center;
 	align-items: end;
 	z-index: 7;
+	overflow: auto;
 }
 
 .fullScreenPiano > *:not(span) {
@@ -419,8 +419,8 @@ piano-roll > label.light {
 }
 
 .fullScreenPiano > span.white-wrap {
-	flex-basis: calc(100vw/28);
 	height: 50vh;
+    min-width: calc(50vh/5);
 }
 
 .fullScreenPiano > span.white-wrap > span > .color {
@@ -429,9 +429,9 @@ piano-roll > label.light {
 }
 
 .fullScreenPiano > span.black-wrap > span {
-	width: 2.2vw;
+	width: calc(50vh/9);
     height: 31vh;
-    left: -1.1vw;
+    left: calc(-50vh/9/2);
     top: -50.1vh;
 	box-shadow: -.1vw .3vh .34vw .14vw grey;
 	/* box-shadow: -0.14vw 0.3vh 0.14vw 0.14vw grey; */

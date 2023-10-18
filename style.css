@@ -456,3 +456,16 @@ piano-roll > label.light {
 .fullScreenPiano > span > span > span.content:not(:empty) {
 	box-shadow: inset -.1vw .7vh .6vw 0vw grey;
 }
+
+piano-roll > .lockRoll {
+	display: none;
+}
+
+.fullScreenPiano.mobile > .lockRoll {
+	display: flex;
+	position: fixed;
+	width: 100%;
+	bottom: 55vh;
+	justify-content: center;
+	font-size: 3vh;
+}

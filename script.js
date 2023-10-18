@@ -336,7 +336,10 @@ function addTrack(track) {
 
 		function handler(e) {
 			if (isMobile && !Array.prototype.some.call(e.changedTouches, ({identifier}) => identifier === event.changedTouches[0].identifier)) return;
-			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48 + (+piano.octaveShift.value * 12 || 0)]});//index + 48 - 12 при переносе на октаву вверх
+			if (isMobile && e.type === 'touchcancel')
+				setTimeout(() => midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48 + (+piano.octaveShift.value * 12 || 0)]}), 500);
+			else 
+				midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48 + (+piano.octaveShift.value * 12 || 0)]});
 			document.body.removeEventListener(isMobile ? 'touchend' : 'mouseup', handler);
 			if (isMobile) document.body.removeEventListener('touchcancel', handler);
 		}

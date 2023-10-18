@@ -77,22 +77,32 @@ customElements.define("piano-roll", class extends HTMLElement {
 			</select>
 			<label title="функция ноты" class="load">+1<input type="checkbox"></label>
 			<label title="полная подсветка" class="light">💡<input type="checkbox"></label>
+  			<label title="закрепить положение" class="lockRoll">🔓</label>
 		`);
 
-		this.fullScreenPianoButton = this.querySelector('div.fullScreenPianoButton');
-		this.fullScreenPianoButton.onclick = () => {
-			this.classList.toggle('fullScreenPiano');
-			if (true) return;
-				
-			if (this.classList.contains('fullScreenPiano')) {
+		const toggleViewport = () => {
+			if (this.lock.textContent === '🔓') {
 				const meta = document.createElement('meta');
 				meta.setAttribute('name', 'viewport');
 				meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no')
 				document.head.appendChild(meta);
+				this.lock.textContent = '🔒';
 			} else {
 				document.head.removeChild(document.head.querySelector('meta[name="viewport"]'));
+				this.lock.textContent = '🔓';
 			}
 		}
+
+		if (isMobile) this.classList.toggle('mobile');
+		this.lock = this.querySelector('label.lockRoll'); 
+		this.lock.onclick = () => toggleViewport();
+
+		this.fullScreenPianoButton = this.querySelector('div.fullScreenPianoButton');
+		this.fullScreenPianoButton.onclick = () => {
+			this.classList.toggle('fullScreenPiano');
+			if (this.lock.textContent === '🔒') toggleViewport();
+		}
+		
 		this.trackSoundEmitter = null;
 		this.midiEventHandler = this.midiEventHandler.bind(this);
 		this.tone = this.querySelector('select');

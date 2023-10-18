@@ -14,7 +14,7 @@ const timeSign = [4, 4];
 let resizeTimeoutId = 0;
 let tracksActiveSounds = new Map(); //Ключ-дорожка, значение-массив из её активных(сейчас звучащих) звуков
 const trackMessageEmitters = new Map(); // Ключ-массив из её активных звуков дорожки, значение - ЕЕ(EventTarget) note on/off сообщений
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+const isMobile = 'ontouchstart' in window || window.DocumentTouch && document instanceof window.DocumentTouch || navigator.maxTouchPoints > 0 || window.navigator.msMaxTouchPoints > 0;
 const trackSelect = document.createElement('select');
 trackSelect.multiple = true;
 trackSelect.className = 'analyzedTracks';
@@ -334,7 +334,8 @@ function addTrack(track) {
 		if (index === -1) return; //48 мидикод до малой октавы 
 		midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [144, index + 48 + (+piano.octaveShift.value * 12 || 0)]}); //index + 48 - 12 при переносе на октаву вверх
 
-		document.body.addEventListener(isMobile ? 'touchend' : 'mouseup', function handler() {
+		document.body.addEventListener(isMobile ? 'touchend' : 'mouseup', function handler(e) {
+			if (isMobile && event.changedTouches[0].identifier !== e.changedTouches[0].identifier) return;
 			midiMessageHandler.call(track, trackSounds, soundEmitter, {data: [128, index + 48 + (+piano.octaveShift.value * 12 || 0)]});//index + 48 - 12 при переносе на октаву вверх
 			document.body.removeEventListener(isMobile ? 'touchend' : 'mouseup', handler);
 		});

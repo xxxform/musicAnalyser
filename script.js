@@ -1542,6 +1542,7 @@ function midiMessageHandler(activeS, ee, obj) {
 	const inp = codeEnvelopeMap.get(this);	//для песен this здесь {id:0,n:0,info{},volume...}
 	
 	if ((msg[0] === 128) || (msg[0] === 144 && msg[2] === 0)) {
+		if (inp[midiCode])
 		inp[midiCode].stop();
 		delete inp[midiCode];
 		const index = activeS.findIndex(s => s.pitch === midiCode);

@@ -148,6 +148,7 @@ table * {border: 0}
 }
 
 .interface {
+	position: relative;
 	height:30%;
 	font-family: Liberation serif;
 }
@@ -394,7 +395,7 @@ piano-roll > label.light {
 }
 
 .fullScreenPiano {
-    position: fixed;
+    position: absolute;
     top: 0;
     bottom: 0;
     right: 0;

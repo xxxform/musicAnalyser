@@ -66,8 +66,8 @@ customElements.define("piano-roll", class extends HTMLElement {
 		.repeat(this.octaves).concat(` <div class="fullScreenPianoButton">⤢</div>
 			<label title="сдвиг октав" class="octaveShift"><input type="number" value="0"></label>
 			<select class="quantize" title="Цветовая модель">
-				<option value="redWhiteBlue" selected>Красный-белый-синий</option>
-				<option value="yellowWhiteBlue">Желтый-белый-синий</option>
+				<option value="redWhiteBlue">Красный-белый-синий</option>
+				<option value="yellowWhiteBlue" selected>Желтый-белый-синий</option>
 				<option value="yellowWhitePurple">Желтый-белый-фиолетовый</option>
 				<option value="yellowPurple">Желтый-серый-фиолетовый</option>
 				<option value="yellowBlue">Желтый-серый-синий</option>

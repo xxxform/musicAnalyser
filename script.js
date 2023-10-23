@@ -1403,7 +1403,7 @@ ifaceResizeValue.oninput = () => {
 
 	wrapperAnalyzers.style.height = 100 - value + "%";
 	document.querySelector('body > div.interface').style.height = value + "%"; 
-	
+	window.history.replaceState(null, null, `?size=${value}`);
 }
 document.body.onmousemove = e => {
 	if (toResize && rectClick) {
@@ -1423,6 +1423,7 @@ document.body.onmousemove = e => {
 			toResize.style.height = newi + "%";
 			analyzerWrap.style.height = newa + "%";
 			ifaceResizeValue.value = newi;
+			window.history.replaceState(null, null, `?size=${newi}`);
 		} else {
 			const fSize = parseFloat(toResize.style.fontSize) || 1;
 			toResize.style.fontSize = fSize + 0.007 * (pxToResize > 0 || -1) +'em';

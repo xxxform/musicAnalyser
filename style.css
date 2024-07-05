@@ -39,6 +39,29 @@ hr {
 	position: relative;
 }
 
+div.vectorsSetting .currentVector {
+	width: 7em;
+}
+.fifthCircleWrap {
+	direction: ltr;
+}
+.fifthCircleWrap > svg, .fifthCircleWrap div.vectorsSetting {
+	float: left;
+}
+.vectorsSetting {
+	width: 70%;
+}
+div.vectorsSetting .lastNotesCount {
+	width: 3em;
+}
+
+.fifthCircleWrap > .svgLabels {
+	position: absolute;
+}
+.fifthCircleWrap > .interface {
+	width: 100%;
+}
+
 table.analyzer {
 	font-size: 1em;
 	overflow-y: hidden;

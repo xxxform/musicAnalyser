@@ -437,6 +437,182 @@ function isEqual(a1, a2) {
 	return Object.keys(a1Info).every(key => a1Info[key] === a2Info[key]);
 }
 
+//квинтовый круг
+
+class FifthCircleAnalyzer {
+	constructor(id = 0, parentElement, keyN, tracksActiveSounds = []) {
+		this.id = id;
+		this.tracksActiveSounds = tracksActiveSounds;
+		this.wrapper = parentElement;
+		parentElement.innerHTML = `
+			<div class="wrapperAnalyzer fifthCircleWrap">
+				<form name="interface" style="width: 100%; position: relative">
+					<span class="toAnalyze" title="Треки для анализа">Анализ</span>
+					<input type="button" class="add" value="Добавить">
+					<input type="button" class="clear" value="Очистить">
+					<input type="button" class="remove" value="Удалить">
+				</form>
+				<svg width="30%" height="100%" viewBox="-1.5 -1.5 3 3">
+					<circle cx="0" cy="0" r=".99" fill="none" stroke="black" stroke-width=".02"></circle>
+					<text x="0" y="-1" font-size=".2">C</text>
+					<text x="0.5" y="-.87" font-size=".2">G</text>
+					<text x="0.87" y="-.5" font-size=".2">D</text>
+					<text x="1" y="0" font-size=".2">A</text>
+					<text x=".87" y="0.5" font-size=".2">E</text>
+					<text x=".5" y="0.87" font-size=".2">B</text>
+					<text x="0" y="1" font-size=".2">F#</text>
+					<text x="-.5" y=".87" font-size=".2">Db</text>
+					<text x="-.87" y=".5" font-size=".2">Ab</text>
+					<text x="-1" y="0" font-size=".2">Eb</text>
+					<text x="-.87" y="-.5" font-size=".2">Bb</text>
+					<text x="-.5" y="-.87" font-size=".2">F</text>
+				</svg>
+				<div class="vectorsSetting">
+				</div>
+				</ul>
+			</div>
+		`
+		this.showAll = {checked: false}
+		this.history = [];
+		this.midiMessageHandler = this.midiMessageHandler.bind(this);
+		this.onAnalyzeTrackChange = this.onAnalyzeTrackChange.bind(this);
+
+		this.vectorSettings = parentElement.querySelector('div.vectorsSetting');
+		this.vectorSettingLineMap = new Map();
+
+		this.svg = parentElement.querySelector('div.wrapperAnalyzer > svg');
+		this.svg.querySelectorAll('text').forEach(el => {
+			el.setAttribute('x', +el.getAttribute('x') + -.1);
+			el.setAttribute('y', +el.getAttribute('y') + .05);
+		})
+
+		parentElement.querySelector('div.wrapperAnalyzer .clear').onclick = this.clear.bind(this);
+		parentElement.querySelector('input.remove').onclick = this.remove.bind(this);
+		parentElement.querySelector('span.toAnalyze').onmouseenter = this.attachTracksSelectToAnalyzer.bind(this);
+		parentElement.querySelector('.add').onclick = () => this.addVector(6, '#00ff00');
+		this.addVector(0, '#9E9E9E');
+		this.addVector(3, '#00ff00');
+	}
+
+	addVector(numOfNotes, color) {
+		const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+		line.setAttribute('x1', 0);
+		line.setAttribute('y1', 0);
+		line.setAttribute('x2', 0);
+		line.setAttribute('y2', 0);
+		line.setAttribute('stroke-width', .05);
+		line.setAttribute('stroke', color);
+		this.svg.append(line);
+
+		const settings = document.createElement('div');
+		settings.classList.add('vectorSetting')
+		settings.innerHTML = `
+			♪ <input type="number" class="lastNotesCount" title="Количество последних нот для анализа. 0 = все" value="${numOfNotes}">
+			<input type="color" class="color" value="${color}" title="Цвет фона">
+			<input type="checkbox" class="viewMode">
+			<input type="text" class="currentVector" value="0,0">
+			<!--<input type="button" class="clear" value="Очистить">-->
+			<input type="button" class="remove" value="Удалить">
+		`;
+		settings.querySelector('.remove').onclick = () => {
+			this.vectorSettingLineMap.delete(settings);
+			line.remove();
+			settings.remove();
+		}
+		settings.querySelector('.color').oninput = e => {
+			line.setAttribute('stroke', e.target.value);
+		}
+		settings.querySelector('.lastNotesCount').onbeforeinput = e => {
+			let val = e.target.value;
+			if (!+val) return;
+			return val;
+		}
+
+		this.vectorSettings.append(settings);
+		this.vectorSettingLineMap.set(settings, line);
+	}
+
+	midiMessageHandler([type, code]) {
+		code = simplifyMidiCode(code);
+		if (type === 144) {
+			let [x,y] = notesXY[code];
+			this.history.push([x,y]);
+
+
+			for (let [settings, line] of this.vectorSettingLineMap.entries()) {
+				const lastNotesCount = -settings.querySelector('.lastNotesCount').value;
+
+				const notesToAnalyse = !lastNotesCount ? this.history : this.history.slice(lastNotesCount);
+				const finalVector = notesToAnalyse.reduce((prev, current) => {
+					prev[0] += +current[0];
+					prev[1] += +current[1];
+					return prev;
+				}, [0,0]);
+				
+				const len = Math.hypot(...finalVector); //normalize
+				finalVector[0] *= (1 / (len || .0001));
+				finalVector[1] *= (1 / (len || .0001));
+				line.setAttribute('x2', finalVector[0]);
+				line.setAttribute('y2', finalVector[1]);
+				const currentVectorEl = settings.querySelector('.currentVector');
+				currentVectorEl.value = [finalVector[0].toFixed(3), finalVector[1].toFixed(3)];
+			}
+		}
+	}
+
+	attachTracksSelectToAnalyzer(e) {
+		const tas = Array.from(tracksActiveSounds.values());
+		const indexes = this.tracksActiveSounds.map(track => tas.indexOf(track));
+		
+		//Проставили selected
+		for (let option of trackSelect.options) 
+			option.selected = indexes.includes(+option.value);
+			
+		if (trackSelect.onchange !== this.onAnalyzeTrackChange) 
+			trackSelect.onchange = this.onAnalyzeTrackChange;
+		
+		e.target.prepend(trackSelect); //Перенесли select к analyzer
+		
+		trackSelect.style.visibility = 'visible';
+	}
+
+	onAnalyzeTrackChange(e) {		
+		const tas = Array.from(tracksActiveSounds.values());
+		
+		// if (this.prevQuantize === '0' || this.accordMode.checked)
+			this.tracksActiveSounds.forEach(track =>  //Нужно снять прошлые 
+				trackMessageEmitters.get(track).removeEventListener(this.midiMessageHandler));
+		
+		this.tracksActiveSounds = Array.from(trackSelect.selectedOptions).map(opt => {
+			const track = tas[opt.value]; //Поставить новые
+			// if (this.prevQuantize === '0' || this.accordMode.checked) 
+				trackMessageEmitters.get(track).addEventListener(this.midiMessageHandler);
+			return track;
+		});
+	}
+
+	start() {}
+	stop() {}
+	recalculateMaxTableRows() {}
+
+	clear() {
+		for (let [settings, line] of this.vectorSettingLineMap.entries()) {
+			settings.querySelector('.currentVector').value = '0.00,0.00';
+			this.history.length = 0;
+			line.setAttribute('x2', 0);
+			line.setAttribute('y2', 0);
+		}
+	}
+
+	remove() {
+		this.wrapper.nextElementSibling.remove();
+		this.wrapper.remove();
+		analyzers.splice(this.id, 1);
+		for (const track of this.tracksActiveSounds) 
+			trackMessageEmitters.get(track).removeEventListener(this.midiMessageHandler);
+	}
+}
+
 // Можно EE в Map по track.
 class Analyzer{//				     массив из ссылок на массивы активных звуков треков
 	constructor(id = 0, parentElement, keyN = 1, tracksActiveSounds = [], triton6b = false) {
@@ -1330,7 +1506,7 @@ function onChangeKey(event) {
 	return newKey;
 }
 
-function addAnalyzer() {
+function addAnalyzer(isFifthCircle = false) {
 	const wrap = document.createElement('div');
 	wrap.classList.add('dopWrap');
 	wrapperAnalyzers.append(wrap);
@@ -1338,17 +1514,19 @@ function addAnalyzer() {
 
 	const lastNumOfAnalyzer = analyzers[analyzers.length - 1] == undefined 
 		? -1 : analyzers[analyzers.length - 1].id;
-	const a = new Analyzer(lastNumOfAnalyzer+1, wrap, +key.value, [], triton6b.checked);
+	const a = isFifthCircle
+		? new FifthCircleAnalyzer(lastNumOfAnalyzer+1, wrap)
+		: new Analyzer(lastNumOfAnalyzer+1, wrap, +key.value, [], triton6b.checked);
 	analyzers.push(a);
 	if (started) a.start();
 	return a;
 }
 
-addAnalyzerBtn.onclick = addAnalyzer;
+addAnalyzerBtn.onclick = () => addAnalyzer(circleAnalyzer.checked);
 
 addAllAnalyzerBtn.onclick = () => {
 	for (let sounds of tracksActiveSounds.values()) {
-		let a = addAnalyzer();
+		let a = addAnalyzer(circleAnalyzer.checked);
 		a.tracksActiveSounds.push(sounds);
 	};
 }
@@ -1524,6 +1702,11 @@ async function f() {
 	a.tracksActiveSounds.push(...Array.from(tracksActiveSounds.values()));
 	a.quantize.value = '0';
 	a.quantize.dispatchEvent(new Event('change'));
+
+	const f = addAnalyzer(true);
+	f.tracksActiveSounds.push(...Array.from(tracksActiveSounds.values()));
+	f.tracksActiveSounds.forEach(track =>  //вешать обработчики событий внутри класса
+		trackMessageEmitters.get(track).addEventListener(f.midiMessageHandler));
 	
 	//Установка настроек пользователя для первого анализатора
 	if (storage !== null) {

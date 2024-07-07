@@ -454,18 +454,18 @@ class FifthCircleAnalyzer {
 				</form>
 				<svg width="30%" height="100%" viewBox="-1.5 -1.5 3 3">
 					<circle cx="0" cy="0" r=".99" fill="none" stroke="black" stroke-width=".02"></circle>
-					<text x="0" y="-1" font-size=".2">C</text>
-					<text x="0.5" y="-.87" font-size=".2">G</text>
-					<text x="0.87" y="-.5" font-size=".2">D</text>
-					<text x="1" y="0" font-size=".2">A</text>
-					<text x=".87" y="0.5" font-size=".2">E</text>
-					<text x=".5" y="0.87" font-size=".2">B</text>
-					<text x="0" y="1" font-size=".2">F#</text>
-					<text x="-.5" y=".87" font-size=".2">Db</text>
-					<text x="-.87" y=".5" font-size=".2">Ab</text>
-					<text x="-1" y="0" font-size=".2">Eb</text>
-					<text x="-.87" y="-.5" font-size=".2">Bb</text>
-					<text x="-.5" y="-.87" font-size=".2">F</text>
+					<text opacity=".15" x="0" y="-1" font-size=".2">C</text>
+					<text opacity=".15" x="0.5" y="-.87" font-size=".2">G</text>
+					<text opacity=".15" x="0.87" y="-.5" font-size=".2">D</text>
+					<text opacity=".15" x="1" y="0" font-size=".2">A</text>
+					<text opacity=".15" x=".87" y="0.5" font-size=".2">E</text>
+					<text opacity=".15" x=".5" y="0.87" font-size=".2">B</text>
+					<text opacity=".15" x="0" y="1" font-size=".2">F#</text>
+					<text opacity=".15" x="-.5" y=".87" font-size=".2">Db</text>
+					<text opacity=".15" x="-.87" y=".5" font-size=".2">Ab</text>
+					<text opacity=".15" x="-1" y="0" font-size=".2">Eb</text>
+					<text opacity=".15" x="-.87" y="-.5" font-size=".2">Bb</text>
+					<text opacity=".15" x="-.5" y="-.87" font-size=".2">F</text>
 				</svg>
 				<div class="vectorsSetting">
 				</div>
@@ -481,10 +481,6 @@ class FifthCircleAnalyzer {
 		this.vectorSettingLineMap = new Map();
 
 		this.svg = parentElement.querySelector('div.wrapperAnalyzer > svg');
-		this.svg.querySelectorAll('text').forEach(el => {
-			el.setAttribute('x', +el.getAttribute('x') + -.1);
-			el.setAttribute('y', +el.getAttribute('y') + .05);
-		})
 
 		parentElement.querySelector('div.wrapperAnalyzer .clear').onclick = this.clear.bind(this);
 		parentElement.querySelector('input.remove').onclick = this.remove.bind(this);
@@ -492,6 +488,54 @@ class FifthCircleAnalyzer {
 		parentElement.querySelector('.add').onclick = () => this.addVector(6, '#00ff00');
 		this.addVector(0, '#9E9E9E');
 		this.addVector(3, '#00ff00');
+
+		for (let j = 0; j < 2; j++) 
+		for (let i = 0; i < 12; i++) {
+			const color = 'black'//!(i % 4) ? 'purple' : !(i % 3) ? 'red' : i % 2 ? 'lime' : 'blue';
+			const deg = (!j ? 240 : 255)+(i*30);
+			const height = !j ? 1.1 : .8;//i % 2 ? 1.1 : 1.2;
+			let xOrig = Math.sin(deg * Math.PI / 180);
+			let yOrig = -Math.cos(deg * Math.PI / 180);
+			let x = xOrig * (height / 1);
+			let y = yOrig * (height / 1);
+
+			const degEnd = deg + 30//45;
+			let xEndOrig = Math.sin(degEnd * Math.PI / 180);
+			let yEndOrig = -Math.cos(degEnd * Math.PI / 180);
+			let xEnd = xEndOrig * (height / 1);
+			let yEnd = yEndOrig * (height / 1);
+
+			const degText = deg + 15//22.5;
+			let xText = Math.sin(degText * Math.PI / 180) * (height / 1);
+			let yText = -Math.cos(degText * Math.PI / 180) * (height / 1);
+
+			const key = getKey(!j ? i-4 : i - 1);
+			const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+			text.setAttribute('x', xText);
+			text.setAttribute('y', yText);
+			text.setAttribute('fill', color);
+			text.setAttribute('font-size', .15);
+			text.textContent = !j ? key : key + 'm';
+			this.svg.append(text);
+
+			const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+			line.setAttribute('x1', xOrig);
+			line.setAttribute('y1', yOrig);
+			line.setAttribute('x2', x);
+			line.setAttribute('y2', y);
+			line.setAttribute('stroke-width', .03);
+			line.setAttribute('stroke', color);
+			this.svg.append(line);
+
+			// const lineEnd = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+			// lineEnd.setAttribute('x1', xEndOrig);
+			// lineEnd.setAttribute('y1', yEndOrig);
+			// lineEnd.setAttribute('x2', xEnd);
+			// lineEnd.setAttribute('y2', yEnd);
+			// lineEnd.setAttribute('stroke-width', .05);
+			// lineEnd.setAttribute('stroke', color);
+			// this.svg.append(lineEnd);
+		}
 	}
 
 	addVector(numOfNotes, color) {

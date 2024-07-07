@@ -55,9 +55,11 @@ div.vectorsSetting .lastNotesCount {
 	width: 3em;
 }
 
-.fifthCircleWrap > .svgLabels {
-	position: absolute;
+.fifthCircleWrap text {
+	text-anchor: middle;
+	dominant-baseline: middle;
 }
+
 .fifthCircleWrap > .interface {
 	width: 100%;
 }

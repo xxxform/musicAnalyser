@@ -320,7 +320,7 @@ function addTrack(track) {
 	const soundEmitter = new Emitter();
 	const piano = addedTrackElement.querySelector('piano-roll');
 	piano.emitter = soundEmitter;
-	piano.toggle();
+	//piano.toggle();
 	
 	//Подсветка индикатора
 	const indicator = addedTrackElement.querySelector('.indicator');

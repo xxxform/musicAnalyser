@@ -1747,10 +1747,10 @@ async function f() {
 	a.quantize.value = '0';
 	a.quantize.dispatchEvent(new Event('change'));
 
-	const f = addAnalyzer(true);
-	f.tracksActiveSounds.push(...Array.from(tracksActiveSounds.values()));
-	f.tracksActiveSounds.forEach(track =>  //вешать обработчики событий внутри класса
-		trackMessageEmitters.get(track).addEventListener(f.midiMessageHandler));
+	//const f = addAnalyzer(true);
+	//f.tracksActiveSounds.push(...Array.from(tracksActiveSounds.values()));
+	//f.tracksActiveSounds.forEach(track =>  //вешать обработчики событий внутри класса
+	//	trackMessageEmitters.get(track).addEventListener(f.midiMessageHandler));
 	
 	//Установка настроек пользователя для первого анализатора
 	if (storage !== null) {
